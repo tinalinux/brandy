@@ -150,7 +150,15 @@ int power_source_init(void)
 		axp_probe_factory_mode();
 		if(!axp_probe_power_supply_condition())
 		{
+#if defined(CONFIG_AW_AXP259) && (CONFIG_SUNXI_AXP_MAIN == PMU_TYPE_259)
+#if defined(CONFIG_AW_AXP22)
+			if(!axp_set_supply_status(PMU_TYPE_22X, PMU_SUPPLY_DCDC3, dcdc3_vol, -1))
+#else
 			if(!axp_set_supply_status(0, PMU_SUPPLY_DCDC3, dcdc3_vol, -1))
+#endif
+#else
+			if(!axp_set_supply_status(0, PMU_SUPPLY_DCDC3, dcdc3_vol, -1))
+#endif
 			{
 				tick_printf("PMU: dcdc3 %d\n", dcdc3_vol);
 				sunxi_clock_set_corepll(uboot_spare_head.boot_data.run_clock, 0);

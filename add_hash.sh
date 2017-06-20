@@ -24,18 +24,18 @@ build_uboot()
 
 build_boot0()
 {
-    dd if=./${BUILD_FILE} of=./boot0_back bs=760 count=1 status=noxfer 2> /dev/null
+    dd if=${BUILD_FILE} of=./boot0_back bs=760 count=1 status=noxfer 2> /dev/null
     dd if=./cur.log  of=./boot0_back ibs=64 conv=notrunc,sync oflag=append obs=64 count=1 status=noxfer 2> /dev/null
-    dd if=./${BUILD_FILE} of=./boot0_back ibs=824 obs=824 conv=notrunc oflag=append skip=1 status=noxfer 2> /dev/null
+    dd if=${BUILD_FILE} of=./boot0_back ibs=824 obs=824 conv=notrunc oflag=append skip=1 status=noxfer 2> /dev/null
     mv boot0_back ${BUILD_FILE}
 }
 
 
 build_sboot()
 {
-    dd if=./${BUILD_FILE} of=./sboot_back bs=48 count=1 status=noxfer 2> /dev/null
+    dd if=${BUILD_FILE} of=./sboot_back bs=48 count=1 status=noxfer 2> /dev/null
     dd if=./cur.log  of=./sboot_back ibs=64 conv=notrunc,sync oflag=append obs=64 count=1 status=noxfer 2> /dev/null
-    dd if=./${BUILD_FILE} of=./sboot_back ibs=112 obs=112 conv=notrunc oflag=append skip=1 status=noxfer 2> /dev/null
+    dd if=${BUILD_FILE} of=./sboot_back ibs=112 obs=112 conv=notrunc oflag=append skip=1 status=noxfer 2> /dev/null
     mv sboot_back ${BUILD_FILE}
 }
 

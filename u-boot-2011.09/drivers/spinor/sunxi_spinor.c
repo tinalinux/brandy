@@ -782,6 +782,8 @@ int spinor_write(uint start, uint nblock, void *buffer)
 {
 	int tmp_block_index;
 
+        printf("spinor write: start 0x%x, sector 0x%x\n", start, nblock);
+
 	if(spinor_cache_block < 0)
 	{
 		spinor_cache_block = start/SPINOR_BLOCK_SECTORS;

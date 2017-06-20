@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-PLATFORM="sun8iw3p1"
+PLATFORM="sun8iw11p1"
 MODE=""
 
 show_help()
@@ -40,46 +40,37 @@ prepare_toolchain()
 
 build_uboot()
 {
-	if [ "x${PLATFORM}" = "xsun50iw1p1" ]; then
-
-		prepare_toolchain
-		#make atf
-		cd arm-trusted-firmware-1.0/
-		make clean && make PLAT=sun50iw1p1
-		cd ..
-        fi
-	if [ "x${PLATFORM}" = "xsun50iw1p1" ] || [ "x${PLATFORM}" = "xsun8iw10p1" ] || [ "x${PLATFORM}" = "xsun8iw11p1" ]; then
-                cd u-boot-2014.07/
+	if [ "x${PLATFORM}" = "xsun50iw1p1" ] || \
+	[ "x${PLATFORM}" = "xsun50iw2p1" ] || \
+	[ "x${PLATFORM}" = "xsun50iw6p1" ] || \
+	[ "x${PLATFORM}" = "xsun50iw3p1" ] || \
+	[ "x${PLATFORM}" = "xsun3iw1p1" ] || \
+	[ "x${PLATFORM}" = "xsun8iw12p1" ] || \
+	[ "x${PLATFORM}" = "xsun8iw10p1" ] || \
+	[ "x${PLATFORM}" = "xsun8iw11p1" ] || \
+	[ "x${PLATFORM}" = "xsun8iw12p1" ] || \
+	[ "x${PLATFORM}" = "xsun8iw15p1" ] || \
+	[ "x${PLATFORM}" = "xsun8iw17p1" ];then
+		cd u-boot-2014.07/
 	else
 		cd u-boot-2011.09/
 	fi
-
 	make distclean
 	if [ "x$MODE" = "xota_test" ] ; then
 		export "SUNXI_MODE=ota_test"
 	fi
 	make ${PLATFORM}_config
-	make -j8
-
-    if  [ ${PLATFORM} = "sun8iw6p1" ] || \
-	[ ${PLATFORM} = "sun8iw7p1" ] || \
-	[ ${PLATFORM} = "sun8iw8p1" ] || \
-	[ ${PLATFORM} = "sun9iw1p1" ] || \
-	[ ${PLATFORM} = "sun8iw5p1" ] || \
-	[ ${PLATFORM} = "sun50iw1p1" ] || \
-	[ ${PLATFORM} = "sun8iw10p1" ] || \
-	[ ${PLATFORM} = "sun8iw11p1" ]; then
-        make spl
+	make -j16
+	make spl 
 	make fes
-    fi
 
-    if [ ${PLATFORM} = "sun8iw5p1" ]; then
+	if [ ${PLATFORM} = "sun8iw11p1" -o ${PLATFORM} = "sun3iw1p1" -o ${PLATFORM} = "sun8iw8p1" ]; then
 	make distclean
 	make ${PLATFORM}_nor_config
-	make -j8
+	make -j16
     fi
 
-    cd - 1>/dev/null
+	cd - 1>/dev/null
 }
 
 while getopts p:m:t OPTION

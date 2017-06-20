@@ -1579,6 +1579,7 @@ static int sunxi_pburn_state_loop(void  *buffer)
 					default:
 						break;
 	  				}
+
 					break;
 
 	  			case 0xf7:		//自定义命令字，烧录分区数据

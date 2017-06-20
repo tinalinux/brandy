@@ -1,4 +1,6 @@
 /*
+ * board/sunxi/sunxi_serial.c
+ *
  * Copyright (c) 2016 Allwinnertech Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify

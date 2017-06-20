@@ -1,4 +1,6 @@
 /*
+ * drivers/video_sun7i/de_bsp/lcd/panels/default_panel.h
+ *
  * Copyright (c) 2016 Allwinnertech Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify

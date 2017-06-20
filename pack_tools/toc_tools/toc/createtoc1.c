@@ -20,8 +20,9 @@
 */
 #include "common.h"
 #include "include.h"
+#include <errno.h>
 
-int createtoc1(toc_descriptor_t *toc1, char *toc1_name)
+int createtoc1(toc_descriptor_t *toc1, char *toc1_name, int main_v, int sub_v)
 {
 	char toc1_full_name[MAX_PATH];
 	char toc1_content_name[MAX_PATH];
@@ -67,6 +68,12 @@ int createtoc1(toc_descriptor_t *toc1, char *toc1_name)
 	//Ìî³ämain info
 	strcpy(toc1_head->name, "sunxi-secure");
 	toc1_head->magic    = TOC_MAIN_INFO_MAGIC;
+
+	printf("toc1_head->main_version=%d\n", toc1_head->main_version);
+	printf("toc1_head->sub_version=%d\n", toc1_head->sub_version);
+
+	toc1_head->main_version = main_v;
+	toc1_head->sub_version  = sub_v;
 	toc1_head->end      = TOC_MAIN_INFO_END;
 	toc1_head->items_nr = content_count;
 	//Ìî³äitme info
@@ -75,9 +82,42 @@ int createtoc1(toc_descriptor_t *toc1, char *toc1_name)
 	for(p_item_head=item_head;item_count > 0;p_item_head++, p_toc1++, item_count--)
 	{
 		memset(toc1_content_name, 0, MAX_PATH);
+		if(p_toc1->type == LOGO_TYPE)
+		{
+			strcpy(toc1_content_name, p_toc1->bin);
+			printf("toc1_content_name=%s\n", toc1_content_name);
+
+			src_file = fopen(toc1_content_name, "rb");
+			if(src_file == NULL)
+			{
+				printf("file %s cant be open\n", toc1_content_name);
+
+				goto __createtoc1_err;
+			}
+			fseek(src_file, 0, SEEK_END);
+			file_len = ftell(src_file);
+			fseek(src_file, 0, SEEK_SET);
+			fread(toc1_content + offset, file_len, 1, src_file);
+			fclose(src_file);
+			src_file = NULL;
+
+			p_item_head->data_offset = offset;
+			p_item_head->data_len    = file_len;
+			p_item_head->end         = TOC_ITEM_INFO_END;
+			p_item_head->type        = ITEM_TYPE_LOGO;
+
+			strcpy(p_item_head->name, p_toc1->item);
+			printf("p_toc1->item=%s\n", p_toc1->item);
+
+			offset = (offset + file_len + 1023) & (~1023);
+			printf("offset=0x%x\n", offset);
+
+			continue;
+		}
+
 		sprintf(toc1_content_name, "%s.der", p_toc1->cert);
 
-		//printf("toc1_content_name=%s\n", toc1_content_name);
+		printf("toc1_content_name=%s\n", toc1_content_name);
 
 		src_file = fopen(toc1_content_name, "rb");
 		if(src_file == NULL)
@@ -108,13 +148,12 @@ int createtoc1(toc_descriptor_t *toc1, char *toc1_name)
 		strcpy(p_item_head->name, p_toc1->item);
 
 		offset = (offset + file_len + 1023) & (~1023);
+		printf("offset=0x%x\n", offset);
 
 		if(p_toc1->type == NORMAL_TYPE)
 		{
-			memset(toc1_content_name, 0, MAX_PATH);
 			strcpy(toc1_content_name, p_toc1->bin);
-
-			//printf("toc1_content_name=%s\n", toc1_content_name);
+			printf("toc1_content_name=%s\n", toc1_content_name);
 
 			src_file = fopen(toc1_content_name, "rb");
 			if(src_file == NULL)
@@ -143,6 +182,7 @@ int createtoc1(toc_descriptor_t *toc1, char *toc1_name)
 			strcpy(p_item_head->name, p_toc1->item);
 
 			offset = (offset + file_len + 1023) & (~1023);
+			printf("offset=0x%x\n", offset);
 		}
 	}
 
@@ -155,7 +195,7 @@ int createtoc1(toc_descriptor_t *toc1, char *toc1_name)
 	//´´½¨toc1
 	memset(toc1_full_name, 0, MAX_PATH);
 	GetFullPath(toc1_full_name, toc1_name);
-	//printf("toc1_full_name=%s\n", toc1_full_name);
+	printf("toc1_full_name=%s\n", toc1_full_name);
 	p_file = fopen(toc1_full_name, "wb");
 	if(p_file == NULL)
 	{
@@ -179,3 +219,92 @@ __createtoc1_err:
 
 	return ret;
 }
+
+int getfile_size(FILE *pFile)
+{
+	if( pFile == NULL)
+		return -1 ;
+
+	int cur_pos = ftell(pFile);
+	if(cur_pos == -1)
+		return -1 ;
+
+	if(fseek(pFile, 0L, SEEK_END) == -1)
+		return -1 ;
+	int size= ftell(pFile);
+	if(fseek(pFile, cur_pos, SEEK_SET)== -1)
+		return -1 ;
+	return size ;
+}
+
+/*split uboot image from toc1*/
+int splittoc1(char *toc1 )
+{
+	char full_toc1[MAX_PATH] , full_uboot[MAX_PATH] ;
+	FILE *ftoc1 = NULL, *fuboot = NULL;
+	int ret = -1, totallen, actlen ,cnt;
+	char *body = NULL ;
+	char * uboot = "u-boot.fex";
+
+	unsigned int offset;
+
+	printf("split %s\n",toc1);
+	sbrom_toc1_head_info_t  *toc1_head;
+	sbrom_toc1_item_info_t  *item_head ;
+
+	GetFullPath(full_toc1, toc1);
+	GetFullPath(full_uboot, uboot);
+
+	if( (ftoc1=fopen(full_toc1,"r+")) == NULL) {
+		printf("Open toc1 file %s fail ---%s\n",full_toc1,
+				strerror(errno));
+		goto splittoc1_out;
+	}
+
+	totallen = getfile_size(ftoc1);
+	if( (body= malloc(totallen)) ==NULL ){
+		printf("malloc toc1 body fail\n");
+		goto splittoc1_out;
+	}
+
+	if( fread(body, totallen,1,ftoc1) != 1 ){
+		printf("Read toc1 %s file head fail --- %s\n", full_toc1,
+				strerror(errno));
+			goto splittoc1_out;
+	}
+	toc1_head = (sbrom_toc1_head_info_t *)body ;
+	item_head = body + sizeof(sbrom_toc1_head_info_t);
+	cnt = toc1_head->items_nr;
+	offset = (sizeof(sbrom_toc1_head_info_t) + cnt* sizeof(sbrom_toc1_item_info_t) + 1023) & (~1023);
+
+	for(; cnt >0 ;item_head ++, cnt -- )
+		if( (!strcmp(item_head->name, "u-boot") )&&
+				(item_head->type == 3))
+			break ;
+
+	offset = item_head->data_offset ;
+	actlen = item_head->data_len ;
+	printf("uboot offset 0x%x len 0x%x\n",offset, actlen);
+
+	if( (fuboot=fopen(full_uboot,"w+")) == NULL) {
+		printf("Open uboot file %s fail ---%s\n",full_uboot,
+				strerror(errno));
+		goto splittoc1_out;
+	}
+
+	if( fwrite(body+offset, actlen, 1, fuboot ) != 1){
+		printf("write uboot file fail --- %s\n", strerror(errno));
+		goto splittoc1_out;
+	}
+	ret = 0;
+
+splittoc1_out:
+	if(body)
+		free(body);
+	if(ftoc1)
+		fclose(ftoc1);
+	if(fuboot)
+		fclose(fuboot);
+	return ret ;
+}
+

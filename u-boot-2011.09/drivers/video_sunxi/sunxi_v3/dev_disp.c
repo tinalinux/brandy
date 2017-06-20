@@ -1,7 +1,6 @@
 /* linux/drivers/video/sunxi/disp/dev_disp.c
  *
  * Copyright (c) 2013 Allwinnertech Co., Ltd.
- * Author: Tyle <tyle@allwinnertech.com>
  *
  * Display driver for sunxi platform
  *

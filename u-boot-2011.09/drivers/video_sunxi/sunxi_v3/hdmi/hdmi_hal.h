@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ * Allwinner SoCs hdmi driver.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Copyright (C) 2016 Allwinner.
  *
+ * This file is licensed under the terms of the GNU General Public
+ * License version 2.  This program is licensed "as is" without any
+ * warranty of any kind, whether express or implied.
  */
+
 #ifndef __HDMI_HAL_H__
 #define __HDMI_HAL_H__
 
@@ -28,9 +29,10 @@
 #define HDMI1080P_24_3D_FP  (HDMI1080P_24 +0x80)
 #define HDMI720P_50_3D_FP   (HDMI720P_50  +0x80)
 #define HDMI720P_60_3D_FP   (HDMI720P_60  +0x80)
-#define HDMI3840_2160P_30   (1+0x100)
-#define HDMI3840_2160P_25   (2+0x100)
-#define HDMI3840_2160P_24   (3+0x100)
+#define HDMI3840_2160P_30   (0x01 + 0x100)
+#define HDMI3840_2160P_25   (0x02 + 0x100)
+#define HDMI3840_2160P_24   (0x03 + 0x100)
+#define HDMI4096_2160P_24   (0x04 + 0x100)
 
 
 

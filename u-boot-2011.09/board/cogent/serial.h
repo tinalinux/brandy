@@ -1,3 +1,14 @@
+/*
+ * board/cogent/serial.h
+ *
+ * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ */
 /* Line Status Register bits */
 #define LSR_DR		0x01	/* Data ready */
 #define LSR_OE		0x02	/* Overrun */

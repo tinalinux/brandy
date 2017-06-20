@@ -1,3 +1,0 @@
-all:
-	make -f make_a50 clean -C boot0; make -f make_a50  -C boot0
-	make -f make_a50 clean -C fes1; make -f make_a50  -C fes1

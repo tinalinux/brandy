@@ -124,6 +124,10 @@ extern int power_off(void);
 extern void sunxi_set_fel_flag(void);
 extern void sunxi_clear_fel_flag(void);
 
+#ifdef CONFIG_DETECT_RTC_BOOT_MODE
+extern int sunxi_get_bootmode_flag(void);
+extern int sunxi_set_bootmode_flag(u8 flag);
+#endif
 extern int sunxi_verify_signature(void *buff, uint len, const char *cert_name);
 extern int sunxi_verify_rotpk_hash(void *input_hash_buf, int len);
 

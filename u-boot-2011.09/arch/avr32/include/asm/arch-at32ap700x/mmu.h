@@ -1,4 +1,15 @@
 /*
+ * arch/avr32/include/asm/arch-at32ap700x/mmu.h
+ *
+ * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ */
+/*
  * In order to deal with the hardcoded u-boot requirement that virtual
  * addresses are always mapped 1:1 with physical addresses, we implement
  * a small virtual memory manager so that we can use the MMU hardware in

@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ * Allwinner SoCs hdmi driver.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Copyright (C) 2016 Allwinner.
  *
+ * This file is licensed under the terms of the GNU General Public
+ * License version 2.  This program is licensed "as is" without any
+ * warranty of any kind, whether express or implied.
  */
+
 #include "hdmi_core.h"
 
 static __s32		hdmi_state = HDMI_State_Idle;
@@ -52,6 +53,8 @@ disp_video_timings video_timing[] =
 	{HDMI720P_60_3D_FP, 0, 148500000, 0,  1280,  1440,  1650,  220,  110,  40,  750,   20,  5,  5,  1,   1,   0,   30,  1},
 	{HDMI3840_2160P_30, 0, 297000000, 0,  3840,  2160,  4400,  296,  176,  88,  2250,  72,  8, 10,  1,   1,   0,    0,  0},
 	{HDMI3840_2160P_25, 0, 297000000, 0,  3840,  2160,  5280,  296, 1056,  88,  2250,  72,  8, 10,  1,   1,   0,    0,  0},
+	{HDMI3840_2160P_24, 0, 297000000, 0,  3840,  2160,  5500,  296, 1276,  88,  2250,  72,  8, 10,  1,   1,   0,    0,  0},
+	{HDMI4096_2160P_24,  0, 297000000, 0,  4096,  2160,  5500,  296, 1020,  88,  2250,  72,  8, 10,  1,   1,   0,    0,  0},
 };
 
 static void hdmi_para_reset(void)
@@ -300,7 +303,8 @@ __u32 get_csc_type(void)
   	|| (glb_video_para.vic == HDMI1080P_24_3D_FP)
   	|| (glb_video_para.vic == HDMI3840_2160P_24)
   	|| (glb_video_para.vic == HDMI3840_2160P_30)
-  	|| (glb_video_para.vic == HDMI3840_2160P_25))
+	|| (glb_video_para.vic == HDMI3840_2160P_25)
+	|| (glb_video_para.vic == HDMI4096_2160P_24))
   	) {
   		csc = 0;
   	}

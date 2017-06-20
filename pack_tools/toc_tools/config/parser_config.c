@@ -573,3 +573,166 @@ __ErasePrivateProfileSection_err:
 
 	return ret;
 }
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
+int sboot_get_version(int *main_version, int *sub_version, char *version_file)
+{
+	//检查参数
+	if(version_file==NULL)
+	{
+		printf("sboot_get_version err: version_file is NULL\n");
+
+		return -1;
+	}
+	if(main_version==NULL)
+	{
+		printf("sboot_get_version err: main_version is NULL\n");
+
+		return -1;
+	}
+	if(sub_version==NULL)
+	{
+		printf("sboot_get_version err: sub_version is NULL\n");
+
+		return -1;
+	}
+	//
+	char lpcfg_full_name[MAX_PATH] = "", *ret_buff;
+	FILE *p_file;
+	char line_buff[256], *p_line_buff;
+	char item[128],  item_buff[128];
+	char value[128], value_buff[128];
+	int  main_flag, sub_flag;
+	int  i, j;
+
+	GetFullPath(lpcfg_full_name, version_file);
+	p_file = fopen(lpcfg_full_name, "rb");
+	if(p_file == NULL)
+	{
+		printf("sboot_get_version err: cant open file %s\n", lpcfg_full_name);
+
+		return -1;
+	}
+	fseek(p_file, 0, SEEK_SET);
+	do
+	{
+		memset(line_buff, 0, 256);
+		ret_buff = fgets(line_buff, 256, p_file);
+		if(ret_buff == NULL)
+		{
+			if(feof(p_file))
+			{
+				printf("GetPrivateProfileSection read to end\n");
+
+				break;
+			}
+			else
+			{
+				printf("GetPrivateProfileSection err: occur a err\n");
+
+				fclose(p_file);
+
+				return -1;
+			}
+		}
+
+		p_line_buff = line_buff;
+		//跳过行首的所有空格
+		while(1)
+		{
+			if((*p_line_buff == ' ') || (*p_line_buff == '\t'))
+				p_line_buff ++;
+			else
+				break;
+		}
+		//如果是空行，或者注释行，跳过
+		if((*p_line_buff == ';') || (*p_line_buff == '#') || (*p_line_buff == 0xa) || (*p_line_buff == 0xd))
+			continue;
+
+		memset(item_buff, 0, 128);
+		memset(item, 0, 128);
+
+		memset(value_buff, 0, 128);
+		memset(value, 0, 128);
+
+		//取出一行的第一段字符串
+		i = 0;
+		while ((*p_line_buff != '=') && (*p_line_buff != 0x0a) && (*p_line_buff != 0x0d)) {
+			item_buff[i++] = *p_line_buff ++;
+		}
+
+		//跳过 =
+		p_line_buff ++;
+		//取出第二段字符串
+		i = 0;
+		while ((*p_line_buff != 0x0a) && (*p_line_buff != 0x0d)) {
+			value_buff[i++] = *p_line_buff ++;
+		}
+
+		i = j = 0;
+
+		while (item_buff[i] != '\0') {
+			if ((item_buff[i] != ' ') && (item_buff[i] != '\t'))
+				item[j++] = item_buff[i];
+			i++;
+		}
+
+		i = j = 0;
+		while (value_buff[i] != '\0') {
+			if ((value_buff[i] != ' ') && (value_buff[i] != '\t'))
+				value[j++] = value_buff[i];
+			i++;
+		}
+
+		if (!strcmp(item, "MAIN_VERSION")) {
+			main_flag = 1;
+			*main_version = atoi(value);
+		}
+		else if (!strcmp(item, "SUB_VERSION")) {
+			sub_flag = 1;
+			*sub_version = atoi(value);
+		}
+
+	}
+	while(1);
+
+	fclose(p_file);
+
+	if (*main_version > 31) {
+		printf("MAIN VERSION is TOO BIG\n");
+		printf("it must larger or equal to 0, and less than 32\n");
+
+		return -1;
+	}
+
+	if (*sub_version > 63) {
+		printf("SUB VERSION is TOO BIG\n");
+
+		printf("it must larger or equal to 0, and less than 64\n");
+
+		return -1;
+	}
+
+	printf("main_version=%d\n", *main_version);
+	printf("sub_version =%d\n", *sub_version);
+
+	if (main_flag && sub_flag)
+		return 0;
+
+	return -1;
+}
+

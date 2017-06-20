@@ -1,4 +1,6 @@
 /*
+ * usb_sunxi/usb_efex_test.h
+ *
  * Copyright (c) 2016 Allwinnertech Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify

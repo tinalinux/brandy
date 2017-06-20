@@ -24,10 +24,12 @@
 
 static void usage(void)
 {
-	printf(" -toc0 cfg_file keypath             create a toc0 file by the sbromsw file\n");
-	printf(" -toc1 cfg_file keypath cnfbase     create a toc1 file by the cfg_file\n");
-	printf(" -key  cfg_file keypath             create all keys by the cfg_file\n");
-	printf(" -pack cfg_file                     create a package file by the cfg_file without certif\n");
+	printf(" -toc0 cfg_file keypath                  create a toc0 file by the sbromsw file\n");
+	printf(" -toc1 cfg_file keypath cnfbase          create a toc1 file by the cfg_file\n");
+	printf(" -toc1 cfg_file keypath cnfbase version  create a toc1 file by the cfg_file\n");
+	printf(" -key  cfg_file keypath                  create all keys by the cfg_file\n");
+	printf(" -pack cfg_file                          create a package file by the cfg_file without certif\n");
+	printf(" -rotpk rsa-key-pair.file rootpk.bin     create root public key hash file from rsa key pair\n");
 
 	return;
 }
@@ -105,9 +107,12 @@ int main(int argc, char *argv[])
 		char toc1path[MAX_PATH]="";
 		char keypath[MAX_PATH]="";
 		char cnfpath[MAX_PATH]="";
+		char versionpath[MAX_PATH]="";
+		int  main_version = 0, sub_version = 0;
+
 		toc_descriptor_t  *toc1;
 
-		if(argc != 5)
+		if(argc < 5)
 		{
 			printf("Dragon Secure Boot: -toc1: invalid paramter counts\n");
 
@@ -117,7 +122,6 @@ int main(int argc, char *argv[])
 
 		GetFullPath(keypath, argv[3]);
 		GetFullPath(cnfpath, argv[4]);
-
 		//printf("keypath=%s\n", keypath);
 		//printf("cnfpath=%s\n", cnfpath);
 
@@ -160,8 +164,21 @@ int main(int argc, char *argv[])
 
 			return -1;
 		}
+
+		//set the version
+		if (argc == 6) {
+			GetFullPath(versionpath, argv[5]);
+			if (sboot_get_version(&main_version, &sub_version, versionpath)) {
+				printf("get version failed\n");
+				free(toc1);
+
+				return -1;
+			}
+		}
+
+
 		GetFullPath(toc1path, TOC1_CONST_NAME);
-		if(createtoc1(toc1, toc1path))
+		if(createtoc1(toc1, toc1path, main_version, sub_version))
 		{
 			printf("create cnf failed\n");
 			free(toc1);
@@ -259,6 +276,138 @@ int main(int argc, char *argv[])
 
 			return -1;
 		}
+	}
+	else if(strcmp(argv[1], "-rotpk") == 0){
+		if(argc != 4) {
+			printf("Dragon Boot: -rotpk: invalid paramter counts\n");
+			usage();
+			return -1 ;
+		}
+
+		if( dragon_create_rotpk_from_keypair(argv[2] , argv[3]) <0 ){
+			printf("create rotpk from keypair fail\n");
+			return -1 ;
+		}
+
+	}
+	else if(strcmp(argv[1], "-resign_toc0") ==0 ){
+		if(argc != 4) {
+			printf("Dragon Boot: -split: invalid paramter counts\n");
+			usage();
+			return -1 ;
+		}
+
+		char tmpdirpath[MAX_PATH];
+		char toc0path[MAX_PATH]="";
+		char keypath[MAX_PATH]="";
+		toc_descriptor_t  *toc0;
+
+		if(argc != 4)
+		{
+			printf("Dragon Secure Boot: -toc0: invalid paramter counts\n");
+			usage();
+
+			return -1;
+		}
+		GetFullPath(keypath, argv[3]);
+
+		memset(tmpdirpath, 0, MAX_PATH);
+		GetFullPath(tmpdirpath, TOC0PATH_CONST);
+		printf("certpath=%s\n", tmpdirpath);
+
+		memset(cmdline, 0, 1024);
+		sprintf(cmdline, "rm -rf %s", tmpdirpath);
+		system(cmdline);
+
+		memset(cmdline, 0, 1024);
+		sprintf(cmdline, "mkdir -p %s", tmpdirpath);
+		system(cmdline);
+
+		splittoc0(TOC0_CONST_NAME);
+		toc0 = (toc_descriptor_t *)malloc(sizeof(toc_descriptor_t));
+		if(toc0 == NULL)
+		{
+			printf("main -resign_toc0 cant malloc memory to store toc0 config info\n");
+
+			return -1;
+		}
+		memset(toc0, 0, sizeof(sizeof(toc_descriptor_t)));
+
+		if(create_cert_for_toc0(argv[2], toc0, keypath))
+		{
+			printf("create cnf failed\n");
+			free(toc0);
+
+			return -1;
+		}
+		GetFullPath(toc0path, TOC0_CONST_NAME);
+		if(update_toc0_cert(toc0, toc0path))
+		{
+			printf("create cnf failed\n");
+			free(toc0);
+
+			return -1;
+		}
+
+	}
+	else if(strcmp(argv[1], "-resign_toc1") ==0 ){
+			char tmpdirpath[MAX_PATH];
+		char toc1path[MAX_PATH]="";
+		char keypath[MAX_PATH]="";
+		char cnfpath[MAX_PATH]="";
+		toc_descriptor_t  *toc1;
+
+		if(argc != 5)
+		{
+			printf("Dragon Secure Boot: -toc1: invalid paramter counts\n");
+
+			usage();
+			return -1;
+		}
+
+		GetFullPath(keypath, argv[3]);
+		GetFullPath(cnfpath, argv[4]);
+
+		//printf("keypath=%s\n", keypath);
+		//printf("cnfpath=%s\n", cnfpath);
+
+		memset(tmpdirpath, 0, MAX_PATH);
+		GetFullPath(tmpdirpath, CERTPATH_CONST);
+		//printf("certpath=%s\n", tmpdirpath);
+
+		memset(cmdline, 0, 1024);
+		sprintf(cmdline, "rm -rf %s", tmpdirpath);
+		system(cmdline);
+
+		memset(cmdline, 0, 1024);
+		sprintf(cmdline, "mkdir -p %s", tmpdirpath);
+		system(cmdline);
+
+		memset(tmpdirpath, 0, MAX_PATH);
+		GetFullPath(tmpdirpath, CNFPATH_CONST);
+		//printf("cnfpath=%s\n", tmpdirpath);
+		memset(cmdline, 0, 1024);
+		sprintf(cmdline, "rm -rf %s", tmpdirpath);
+		system(cmdline);
+
+		memset(cmdline, 0, 1024);
+		sprintf(cmdline, "mkdir -p %s", tmpdirpath);
+		system(cmdline);
+
+		toc1 = (toc_descriptor_t *)malloc(TOC1_CONFIG_MAX * sizeof(toc_descriptor_t));
+		if(toc1 == NULL)
+		{
+			printf("main -resign_toc1 cant malloc memory to store toc1 config info\n");
+
+			return -1;
+		}
+		memset(toc1, 0, TOC1_CONFIG_MAX * sizeof(toc_descriptor_t));
+		if( splittoc1(TOC1_CONST_NAME) <0 ){
+			printf("split uboot from toc1 fail\n");
+			return -1 ;
+		}
+		return 0 ;
+
 	}
 	else
 	{

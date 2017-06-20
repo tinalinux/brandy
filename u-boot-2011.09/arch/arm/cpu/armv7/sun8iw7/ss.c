@@ -346,6 +346,7 @@ void sunxi_ss_open(void)
 	writel(reg_val,CCM_AHB1_RST_REG0);
 
 	if((gd->securemode == SUNXI_NORMAL_MODE) || (gd->securemode == SUNXI_SECURE_MODE))
+<<<<<<< HEAD
 	{
 		ss_base_mode = 1;
 	}
@@ -540,6 +541,197 @@ s32 sunxi_rsa_calc(u8 * n_addr,   u32 n_len,
 
 	return 0;
 }
+=======
+	{
+		ss_base_mode = 1;
+	}
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
+void sunxi_ss_close(void)
+{
+}
+//src_addr		//32B 对齐
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
+int  sunxi_sha_calc(u8 *dst_addr, u32 dst_len,
+					u8 *src_addr, u32 src_len)
+{
+	u32 reg_val = 0;
+	u32 total_len = 0;
+	u32 md_size = 32;
+	s32 i = 0;
+	task_queue task0;
+	ALLOC_CACHE_ALIGN_BUFFER(u8,p_sign,CACHE_LINE_SIZE);
+
+	memset((u8 *)&task0 , 0 ,sizeof(task_queue));
+
+	total_len = __sha_padding(src_len, src_len, (u8 *)src_addr, 1)/4;	//计算明文长度
+
+	task0.task_id = 0;
+	task0.common_ctl = (19)|(1U << 31);
+	task0.symmetric_ctl = 0;
+	task0.asymmetric_ctl = 0;
+	task0.key_descriptor = 0;
+	task0.iv_descriptor = 0;
+	task0.ctr_descriptor = 0;
+	task0.data_len = total_len;
+
+	task0.source[0].addr = (uint)src_addr;
+	task0.source[0].length = total_len;
+	for(i=1;i<8;i++)
+		task0.source[i].length = 0;
+
+	task0.destination[0].addr = (uint)p_sign;
+	task0.destination[0].length = 32/4;
+	for(i=1;i<8;i++)
+		 task0.destination[i].length = 0;
+	task0.next_descriptor = 0;
+
+	flush_cache((uint)&task0, sizeof(task0));
+	flush_cache((uint)p_sign, CACHE_LINE_SIZE);
+	flush_cache((uint)src_addr, total_len * 4);
+
+	writel((uint)&task0, SS_TDQ); //descriptor address
+	//enable SS end interrupt
+	writel(0x1<<(task0.task_id), SS_ICR);
+	//start SS
+	writel(0x1, SS_TLR);
+	//wait end
+	__ss_encry_decry_end(task0.task_id);
+
+	invalidate_dcache_range((ulong)p_sign,(ulong)p_sign + CACHE_LINE_SIZE);
+	//copy data
+	for(i=0; i< md_size; i++)
+	{
+	    dst_addr[i] = p_sign[i];   //从目的地址读生成的消息摘要
+	}
+	//clear pending
+	reg_val = readl(SS_ISR);
+	if((reg_val&(0x01<<task0.task_id))==(0x01<<task0.task_id))
+	{
+	   reg_val &= ~(0x0f);
+	   reg_val |= (0x01<<task0.task_id);
+	}
+	writel(reg_val, SS_ISR);
+	//SS engie exit
+	writel(readl(SS_TLR) & (~0x1), SS_TLR);
+
+	return 0;
+}
+/*
+************************************************************************************************************
+*
+*                                             function
+*
+*    name          :
+*
+*    parmeters     :
+*
+*    return        :
+*
+*    note          :
+*
+*
+************************************************************************************************************
+*/
+s32 sunxi_rsa_calc(u8 * n_addr,   u32 n_len,
+				   u8 * e_addr,   u32 e_len,
+				   u8 * dst_addr, u32 dst_len,
+				   u8 * src_addr, u32 src_len)
+{
+#define	TEMP_BUFF_LEN	((2048>>3) + CACHE_LINE_SIZE)
+	uint   i;
+	task_queue task0;
+	u32 reg_val = 0;
+	u32 mod_bit_size = 2048;
+	u32 mod_size_len_inbytes = mod_bit_size/8;
+
+	ALLOC_CACHE_ALIGN_BUFFER(u8,p_n,TEMP_BUFF_LEN);
+	ALLOC_CACHE_ALIGN_BUFFER(u8,p_e,TEMP_BUFF_LEN);
+	ALLOC_CACHE_ALIGN_BUFFER(u8,p_src,TEMP_BUFF_LEN);
+	ALLOC_CACHE_ALIGN_BUFFER(u8,p_dst,TEMP_BUFF_LEN);
+
+	__rsa_padding(p_src, src_addr, src_len, mod_size_len_inbytes);
+	__rsa_padding(p_n, n_addr, n_len, mod_size_len_inbytes);
+	memset(p_e, 0, mod_size_len_inbytes);
+	memcpy(p_e, e_addr, e_len);
+
+	task0.task_id = 0;
+	task0.common_ctl = (32 | (1U<<31));      //ss method:rsa
+	task0.symmetric_ctl = 0;
+	task0.asymmetric_ctl = (2<<28);
+	task0.key_descriptor = (uint)p_e;
+	task0.iv_descriptor = (uint)p_n;
+	task0.ctr_descriptor = 0;
+	task0.data_len = mod_size_len_inbytes/4;     //word in uint
+	task0.source[0].addr= (uint)p_src;
+	task0.source[0].length = mod_size_len_inbytes/4;
+	for(i=1;i<8;i++)
+		task0.source[i].length = 0;
+	task0.destination[0].addr= (uint)p_dst;
+	task0.destination[0].length = mod_size_len_inbytes/4;
+	for(i=1;i<8;i++)
+		task0.destination[i].length = 0;
+	task0.next_descriptor = 0;
+
+	flush_cache((uint)&task0, sizeof(task0));
+	flush_cache((uint)p_n, mod_size_len_inbytes);
+	flush_cache((uint)p_e, mod_size_len_inbytes);
+	flush_cache((uint)p_src, mod_size_len_inbytes);
+	flush_cache((uint)p_dst, mod_size_len_inbytes);
+
+	writel((uint)&task0, SS_TDQ); //descriptor address
+	//enable SS end interrupt
+	writel(0x1<<(task0.task_id), SS_ICR);
+	//start SS
+	writel(0x1, SS_TLR);
+	//wait end
+	__ss_encry_decry_end(task0.task_id);
+
+	__rsa_padding(dst_addr, p_dst, mod_bit_size/64, mod_bit_size/64);
+	//clear pending
+	reg_val = readl(SS_ISR);
+	if((reg_val&(0x01<<task0.task_id))==(0x01<<task0.task_id))
+	{
+	   reg_val &= ~(0x0f);
+	   reg_val |= (0x01<<task0.task_id);
+	}
+	writel(reg_val, SS_ISR);
+	//SS engie exit
+	writel(readl(SS_TLR) & (~0x1), SS_TLR);
+
+	return 0;
+}
+>>>>>>> sunxi/sunxi-dev
 /*
 ************************************************************************************************************
 *

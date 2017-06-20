@@ -9,6 +9,14 @@
 #include <ctype.h>
 #include <unistd.h>
 
+//#define DEBUG
+#ifdef DEBUG
+#define DBG(fmt, arg...) printf(fmt, ##arg)
+#else
+#define DBG(fmt, arg...) do{}while(0)
+#endif
+
+#define ERR(fmt, arg...) printf("ERROR: "fmt, ##arg)
 
 #define  MAX_PATH  260
 
@@ -16,21 +24,9 @@ int IsFullName(const char *FilePath);
 __s32  update_mbr_crc(sunxi_mbr_t *mbr_info, __s32 mbr_count, FILE *mbr_file);
 __s32 update_for_part_info(sunxi_mbr_t *mbr_info, sunxi_download_info *dl_map, __s32 mbr_count, __s32 mbr_total_size);
 __s32 update_dl_info_crc(sunxi_download_info *dl_map, FILE *dl_file);
-//------------------------------------------------------------------------------------------------------------
-//
-// 函数说明
-//
-//
-// 参数说明
-//
-//
-// 返回值
-//
-//
-// 其他
-//    无
-//
-//------------------------------------------------------------------------------------------------------------
+__s32 check_dl_size(char *filename,int part_size);
+
+
 int get_file_name(char *path, char *name)
 {
 	char buffer[MAX_PATH];
@@ -84,21 +80,7 @@ int get_file_name(char *path, char *name)
 
 	return 0;
 }
-//------------------------------------------------------------------------------------------------------------
-//
-// 函数说明
-//
-//
-// 参数说明
-//
-//
-// 返回值
-//
-//
-// 其他
-//    无
-//
-//------------------------------------------------------------------------------------------------------------
+
 int IsFullName(const char *FilePath)
 {
     if (isalpha(FilePath[0]) && ':' == FilePath[1])
@@ -110,21 +92,7 @@ int IsFullName(const char *FilePath)
         return 0;
     }
 }
-//------------------------------------------------------------------------------------------------------------
-//
-// 函数说明
-//
-//
-// 参数说明
-//
-//
-// 返回值
-//
-//
-// 其他
-//    无
-//
-//------------------------------------------------------------------------------------------------------------
+
 void GetFullPath(char *dName, const char *sName)
 {
     char Buffer[MAX_PATH];
@@ -144,37 +112,18 @@ void GetFullPath(char *dName, const char *sName)
    sprintf(dName, "%s/%s", Buffer, sName);
 }
 
-//------------------------------------------------------------------------------------------------------------
-//
-// 函数说明
-//
-//
-// 参数说明
-//
-//
-// 返回值
-//
-//
-// 其他
-//    无
-//
-//------------------------------------------------------------------------------------------------------------
 void Usage(void)
 {
 	printf("\n");
 	printf("Usage:\n");
-	printf("update.exe script file path para file path\n\n");
+	printf("1.update_mbr    sys_partition.bin\n");
+	printf("2.update_mbr    sys_partition.bin num\n");
+	printf("3.update_mbr    sys_partition.bin num mbr_file\n");
+	printf("4.update_mbr    sys_partition.bin num mbr_file dlinfo_file\n");
 }
-
 
 int main(int argc, char* argv[])
 {
-	//char   str1[] = "os_cfg.ini";
-	//char   str2[] = "boot1.bin";
-	//char   str1[] = "D:\\winners\\ePDK_AW1620_ser\\ePDK_AW1620\\TRUNK\\workspace\\suniii\\eFex\\usb\\config.bin";
-	//char   str2[] = "D:\\winners\\ePDK_AW1620_ser\\ePDK_AW1620\\TRUNK\\workspace\\suniii\\eFex\\usb\\mbr.bin";
-	char   str1[] = "sys_config.bin";
-	char   str2[] = "sunxi_mbr.fex";
 	char   source[MAX_PATH];
 	char   mbr_name[MAX_PATH];
 	char   dl_name[MAX_PATH];
@@ -184,7 +133,7 @@ int main(int argc, char* argv[])
 	FILE  *source_file = NULL;
 	int    script_len;
 	int    mbr_count = 4, mbr_size;
-	int    ret;
+	int    ret = -1;
 	sunxi_mbr_t    mbr_info;
 	sunxi_download_info   dl_info;
 
@@ -196,32 +145,70 @@ int main(int argc, char* argv[])
 	{
 		if(argv[1] == NULL)
 		{
-			printf("update mbr error: one of the input file names is empty\n");
+			ERR("update mbr error: one of the input file names is empty\n");
 
 			return __LINE__;
 		}
 
 		GetFullPath(source,     argv[1]);
+		GetFullPath(mbr_name, SUNXI_MBR_NAME);
+		GetFullPath(dl_name, DOWNLOAD_MAP_NAME);
 //		GetFullPath(mbr_name,   argv[2]);
 
 		mbr_count = 4;
+
 	}
 	else if (argc == 3)
 	{
 		if(argv[1] == NULL)
 		{
-			printf("update mbr error: one of the input file names is empty\n");
+			DBG("update mbr error: one of the input file names is empty\n");
 
 			return __LINE__;
 		}
 
 		GetFullPath(source,   argv[1]);
+		GetFullPath(mbr_name, SUNXI_MBR_NAME);
+		GetFullPath(dl_name, DOWNLOAD_MAP_NAME);
 		mbr_count = atoi(argv[2]);
-		printf("mbr count = %d\n", mbr_count);
+		DBG("mbr count = %d\n", mbr_count);
+
+	}
+	else if (argc == 4)	//update_mbr    sys_partition.bin  n mbr_file
+	{
+		if((argv[1] == NULL)||(argv[3] == NULL))
+		{
+			ERR("update mbr error: one of the  file names is empty\n");
+
+			return __LINE__;
+		}
+
+		GetFullPath(source,   argv[1]);
+		GetFullPath(mbr_name,   argv[3]);
+		GetFullPath(dl_name, DOWNLOAD_MAP_NAME);
+		mbr_count = atoi(argv[2]);
+		DBG("mbr count = %d\n", mbr_count);
+
+	}
+	else if (argc == 5)	//update_mbr    sys_partition.bin  n mbr_file dlinfo_file
+	{
+		if((argv[1] == NULL)||(argv[3] == NULL)||(argv[4] == NULL))
+		{
+			ERR("update mbr error: one of the  file names is empty\n");
+
+			return __LINE__;
+		}
+
+		GetFullPath(source,   argv[1]);
+		GetFullPath(mbr_name,   argv[3]);
+		GetFullPath(dl_name,   argv[4]);
+		mbr_count = atoi(argv[2]);
+		DBG("mbr count = %d\n", mbr_count);
 	}
 	else
 	{
-		printf("parameters is invalid\n");
+		ERR("parameters is invalid\n");
+		Usage();
 
 		return __LINE__;
 	}
@@ -230,25 +217,24 @@ int main(int argc, char* argv[])
 	GetFullPath(source,   str1);
 //	GetFullPath(mbr_name, str2);
 #endif
-	GetFullPath(mbr_name, SUNXI_MBR_NAME);
-	GetFullPath(dl_name, DOWNLOAD_MAP_NAME);
+
 //	if(Change_Path_File(mbr_name, dl_name, DOWNLOAD_MAP_NAME))
 //	{
-//		printf("update mbr error: unable to get download file\n");
+//		ERR("update mbr error: unable to get download file\n");
 //
 //		return __LINE__;
 //	}
 
-	printf("\n");
-	printf("partitation file Path=%s\n", source);
-	printf("mbr_name file Path=%s\n", mbr_name);
-	printf("download_name file Path=%s\n", dl_name);
-	printf("\n");
+	DBG("\n");
+	DBG("partitation file Path=%s\n", source);
+	DBG("mbr_name file Path=%s\n", mbr_name);
+	DBG("download_name file Path=%s\n", dl_name);
+	DBG("\n");
 	//把文件打成一个ini脚本
 	source_file = fopen(source, "rb");
 	if(!source_file)
 	{
-		printf("unable to open script file\n");
+		ERR("unable to open script file\n");
 
 		goto _err_out;
 	}
@@ -261,7 +247,7 @@ int main(int argc, char* argv[])
 	pbuf = (char *)malloc(script_len);
 	if(!pbuf)
 	{
-		printf("unable to malloc memory for script\n");
+		ERR("unable to malloc memory for script\n");
 
 		goto _err_out;
 	}
@@ -278,18 +264,18 @@ int main(int argc, char* argv[])
 	{
 		mbr_size = 16384;
 	}
-	printf("mbr size = %d\n", mbr_size);
+	DBG("mbr size = %d\n", mbr_size);
 	mbr_size = mbr_size * 1024/512;
 	//调用 script_parser_fetch函数取得任意数据项
 	ret = update_for_part_info(&mbr_info, &dl_info, mbr_count, mbr_size);
-	printf("update_for_part_info %d\n", ret);
+	DBG("update_for_part_info %d\n", ret);
 	if(!ret)
 	{
 		mbr_file = fopen(mbr_name, "wb");
 		if(!mbr_file)
 		{
 			ret = -1;
-			printf("update mbr fail: unable to create file %s\n", mbr_name);
+			ERR("update mbr fail: unable to create file %s\n", mbr_name);
 		}
 		else
 		{
@@ -299,7 +285,7 @@ int main(int argc, char* argv[])
 			if(!dl_file)
 			{
 				ret = -1;
-				printf("update mbr fail: unable to create download map %s\n", dl_name);
+				ERR("update mbr fail: unable to create download map %s\n", dl_name);
 			}
 			else
 			{
@@ -311,13 +297,10 @@ int main(int argc, char* argv[])
 	script_parser_exit();
 	//打印结果
 	if(!ret)
-	{
 		printf("update mbr file ok\n");
-	}
 	else
-	{
-		printf("update mbr file fail\n");
-	}
+		ERR("update mbr file fail\n");
+
 _err_out:
 	if(pbuf)
 	{
@@ -336,7 +319,7 @@ _err_out:
 		fclose(dl_file);
 	}
 
-	return 0;
+	return ret;
 }
 
 
@@ -360,7 +343,7 @@ __s32 update_for_part_info(sunxi_mbr_t *mbr_info, sunxi_download_info *dl_map, _
 	//固定不变的信息
 	mbr_info->version = 0x00000200;
 	strcpy((char *)mbr_info->magic, SUNXI_MBR_MAGIC);
-	printf("mbr magic %s\n", mbr_info->magic);
+	DBG("mbr magic %s\n", mbr_info->magic);
 	mbr_info->copy    = mbr_count;
 	if(!mbr_count)
 	{
@@ -384,7 +367,7 @@ __s32 update_for_part_info(sunxi_mbr_t *mbr_info, sunxi_download_info *dl_map, _
 		memset(value, 0, 8 * sizeof(int));
 		if(!script_parser_fetch_mainkey_sub("name", part_handle, value))
 		{
-			printf("disk name=%s\n", (char *)value);
+			DBG("disk name=%s\n", (char *)value);
 			if(!strcmp((char *)value, "UDISK"))
 			{
 				udisk_exist = 1;
@@ -405,7 +388,7 @@ __s32 update_for_part_info(sunxi_mbr_t *mbr_info, sunxi_download_info *dl_map, _
 		}
 		else
 		{
-			printf("MBR Create FAIL: Unable to find partition name in partition index %d\n", part_index);
+			ERR("MBR Create FAIL: Unable to find partition name in partition index %d\n", part_index);
 
 			return -1;
 		}
@@ -514,11 +497,13 @@ __s32 update_for_part_info(sunxi_mbr_t *mbr_info, sunxi_download_info *dl_map, _
 				if(down_flag)
 				{
 					dl_map->one_part_info[down_index].lenlo = value[0];
+					if (check_dl_size(fullname,value[0]))
+						return -1;
 				}
 			}
 			else
 			{
-				printf("MBR Create FAIL: Unable to find partition size in partition %d\n", part_index);
+				ERR("MBR Create FAIL: Unable to find partition size in partition %d\n", part_index);
 
 				return -1;
 			}
@@ -604,7 +589,7 @@ __s32  update_mbr_crc(sunxi_mbr_t *mbr_info, __s32 mbr_count, FILE *mbr_file)
 		mbr_info->index = i;
 		crc32_total = calc_crc32((void *)&(mbr_info->version), (sizeof(sunxi_mbr_t) - 4));
 		mbr_info->crc32 = crc32_total;
-		printf("crc %d = %x\n", i, crc32_total);
+		DBG("crc %d = %x\n", i, crc32_total);
 		fwrite(mbr_info, sizeof(sunxi_mbr_t), 1, mbr_file);
 	}
 
@@ -623,4 +608,31 @@ __s32 update_dl_info_crc(sunxi_download_info *dl_map, FILE *dl_file)
 	return 0;
 }
 
+__s32 check_dl_size(char *filename,int part_size)
+{
+	FILE  *dl_file = NULL;
+	int dl_file_size =0;
+
+	if (filename == NULL || part_size == 0)
+		return -1;
+	dl_file = fopen(filename, "rb");
+	if(!dl_file)
+	{
+		ERR(" unable to open file %s\n", filename);
+		return -1;
+	}
+	fseek(dl_file, 0, SEEK_END);
+	dl_file_size = ftell(dl_file)/512;
+	fseek(dl_file, 0, SEEK_SET);
+	fclose(dl_file);
+	if (dl_file_size > part_size )
+	{
+		ERR("dl file %s size too large\n",filename);
+		ERR("filename = %s \n",filename );
+		ERR("dl_file_size = %d sector\n",dl_file_size );
+		ERR("part_size = %d sector\n",part_size );
+		return -1;
+	}
+	return 0;
+}
 

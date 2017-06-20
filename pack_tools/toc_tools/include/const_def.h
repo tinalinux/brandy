@@ -35,17 +35,18 @@
 #define  PACKAGE_CONST_NAME "boot_package.fex"
 
 #define  TOC1_CONFIG_MAX   (16)
-#define  PACKAGE_CONFIG_MAX (8)
+#define  PACKAGE_CONFIG_MAX (16)
 
 #define  NORMAL_TYPE       0
 #define  ROOTKEY_TYPE      1
 #define  ONLYKEY_TYPE      2
-
+#define  LOGO_TYPE         3
 
 #define  ITEM_TYPE_ROOTKEY   0
 #define  ITEM_TYPE_KEYCERT   1
 #define  ITEM_TYPE_BINKEY    2
 #define  ITEM_TYPE_BINFILE   3
+#define  ITEM_TYPE_LOGO      4
 
 #define  STAMP_VALUE       0x5F0A6C39
 

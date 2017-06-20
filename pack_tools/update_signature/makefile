@@ -4,9 +4,9 @@ objects = update_signature.o rsa.o hash.o crc.o
 
 
 edit:$(objects)
-	gcc -o signature $(objects)
+	gcc -o signature $(objects) -static
 	rm -rf $(objects)
 
 
 clean:
-	rm -rf update_signature $(objects)
+	rm -rf signature $(objects)

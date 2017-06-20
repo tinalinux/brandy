@@ -1,3 +1,14 @@
+/*
+ * board/sixnet/fpgadata.c
+ *
+ * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ */
 	0xff, 0x87, 0xff, 0x88, 0x7f, 0xff, 0xf9, 0xff,
 	0xff, 0xf5, 0xff, 0x8f, 0xff, 0xf0, 0x8f, 0xf9,
 	0xff, 0xef, 0xff, 0xff, 0xff,

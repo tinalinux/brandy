@@ -200,6 +200,8 @@ int mmc_set_blocklen(struct mmc *mmc, int len)
 int mmc_set_erase_start_addr(struct mmc *mmc, unsigned int address)
 {
 	struct mmc_cmd cmd;
+	int err = 0;
+	int timeout = 300; //ms
 
 	cmd.cmdidx = MMC_CMD_ERASE_GROUP_START;
 	cmd.resp_type = MMC_RSP_R1;
@@ -210,12 +212,23 @@ int mmc_set_erase_start_addr(struct mmc *mmc, unsigned int address)
 	else
 		cmd.cmdarg = address * mmc->write_bl_len;
 
-	return mmc_send_cmd(mmc, &cmd, NULL);
+	err = mmc_send_cmd(mmc, &cmd, NULL);
+	if (err) {
+		MMCINFO("%s: send erase start addr failed\n", __FUNCTION__);
+		goto ERR_RET;
+	}
+
+	err = mmc_send_status(mmc, timeout); //ms
+
+ERR_RET:
+	return err;
 }
 
 int mmc_set_erase_end_addr(struct mmc *mmc, unsigned int address)
 {
 	struct mmc_cmd cmd;
+	int err = 0;
+	int timeout = 300; //ms
 
 	cmd.cmdidx = MMC_CMD_ERASE_GROUP_END;
 	cmd.resp_type = MMC_RSP_R1;
@@ -226,7 +239,16 @@ int mmc_set_erase_end_addr(struct mmc *mmc, unsigned int address)
 	else
 		cmd.cmdarg = address * mmc->write_bl_len;
 
-	return mmc_send_cmd(mmc, &cmd, NULL);
+	err = mmc_send_cmd(mmc, &cmd, NULL);
+	if (err) {
+		MMCINFO("%s: send erase end addr failed\n", __FUNCTION__);
+		goto ERR_RET;
+	}
+
+	err = mmc_send_status(mmc, timeout); //ms
+
+ERR_RET:
+	return err;
 }
 
 int mmc_launch_erase(struct mmc *mmc, unsigned int erase_arg)
@@ -318,6 +340,21 @@ unsigned int mmc_mmc_update_timeout(struct mmc *mmc)
 		mmc->secure_erase_timeout = mmc->erase_timeout * mmc_ext_csd.sec_erase_mult;
 		mmc->secure_trim_timeout  = mmc->erase_timeout * mmc_ext_csd.sec_trim_mult;
 	}
+	else
+	{
+		if (mmc_ext_csd.rev == 3) {
+			if (mmc_ext_csd.erase_group_def && mmc_ext_csd.hc_erase_timeout)
+				mmc->erase_timeout = mmc_ext_csd.hc_erase_timeout;
+			else
+				mmc->erase_timeout = mmc_mmc_def_erase_timeout(mmc);
+		} else {
+			mmc->erase_timeout = mmc_mmc_def_erase_timeout(mmc);
+		}
+
+		mmc->trim_discard_timeout = 0x0;
+		mmc->secure_erase_timeout = 0x0;
+		mmc->secure_trim_timeout  = 0x0;
+	}
 
 ERR_RET:
 	MMCDBG("---%s %d\n", __FUNCTION__, ret);
@@ -329,15 +366,31 @@ unsigned int mmc_mmc_erase_timeout(struct mmc *mmc, unsigned int arg,
 {
 	unsigned int erase_timeout = 0;
 
-	if (arg == MMC_DISCARD_ARG || arg == MMC_TRIM_ARG)
+	if (arg == MMC_DISCARD_ARG || arg == MMC_TRIM_ARG) {
+		if (!mmc->trim_discard_timeout) {
+			MMCINFO("invalid trim_discard_timeout is %d\n", mmc->trim_discard_timeout);
+			goto ERR_RET;
+		}
 		erase_timeout = mmc->trim_discard_timeout;
-	else if (arg == MMC_ERASE_ARG)
+	} else if (arg == MMC_ERASE_ARG) {
+		if (!mmc->erase_timeout) {
+			MMCINFO("invalid erase_timeout is %d\n", mmc->erase_timeout);
+			goto ERR_RET;
+		}
 		erase_timeout = mmc->erase_timeout;
-	else if (arg == MMC_SECURE_ERASE_ARG)
+	} else if (arg == MMC_SECURE_ERASE_ARG) {
+		if (!mmc->secure_erase_timeout) {
+			MMCINFO("invalid secure_erase_timeout is %d\n", mmc->secure_erase_timeout);
+			goto ERR_RET;
+		}
 		erase_timeout = mmc->secure_erase_timeout;
-	else if (arg == MMC_SECURE_TRIM1_ARG || arg == MMC_SECURE_TRIM2_ARG)
+	} else if (arg == MMC_SECURE_TRIM1_ARG || arg == MMC_SECURE_TRIM2_ARG) {
+		if (!mmc->secure_trim_timeout) {
+			MMCINFO("invalid secure_trim_timeout is %d\n", mmc->secure_trim_timeout);
+			goto ERR_RET;
+		}
 		erase_timeout = mmc->secure_trim_timeout;
-	else {
+	} else {
 		MMCINFO("Unknown erase argument 0x%x\n", arg);
 		goto ERR_RET;
 	}
@@ -2199,10 +2252,10 @@ static int mmc_decode_ext_csd(struct mmc *mmc,
 
 
 	dec_ext_csd->rev = ext_csd[EXT_CSD_REV];
-	if (dec_ext_csd->rev > 7) {
-		MMCINFO("unrecognised EXT_CSD revision %d\n", dec_ext_csd->rev);
-		err = -1;
-		goto out;
+	if (dec_ext_csd->rev > 8) {
+		MMCINFO("unrecognised EXT_CSD revision %d, maybe ver5.2 or later version!\n", dec_ext_csd->rev);
+		//err = -1;
+		//goto out;
 	}
 
 	dec_ext_csd->raw_sectors[0] = ext_csd[EXT_CSD_SEC_CNT + 0];
@@ -2267,7 +2320,7 @@ static int mmc_decode_ext_csd(struct mmc *mmc,
 		dec_ext_csd->data_sector_size = 512;
 	}
 
-out:
+//out:
 	return err;
 }
 
@@ -2879,8 +2932,14 @@ int mmc_startup(struct mmc *mmc)
 				case 7:
 					mmc->version = MMC_VERSION_5_0;
 					break;
+				case 8:
+					mmc->version = MMC_VERSION_5_1;
+					break;
 				default:
-					MMCINFO("Invalid ext_csd revision %d\n", ext_csd[192]);
+					if (ext_csd[EXT_CSD_REV] > 8)
+						mmc->version = MMC_VERSION_NEW_VER;
+					else
+						MMCINFO("Invalid ext_csd revision %d\n", ext_csd[192]);
 					break;
 			}
 		}
@@ -3153,6 +3212,12 @@ int mmc_startup(struct mmc *mmc)
 				break;
 			case MMC_VERSION_5_0:
 				MMCINFO("MMC ver 5.0\n");
+				break;
+			case MMC_VERSION_5_1:
+				MMCINFO("MMC v5.1\n");
+				break;
+			case MMC_VERSION_NEW_VER:
+				MMCINFO("MMC v5.2 or later version\n");
 				break;
 			default:
 				MMCINFO("Unknow MMC ver\n");

@@ -85,7 +85,9 @@ typedef struct _boot_sdcard_info_t
 typedef struct _boot0_private_head_t
 {
 	__u32                       prvt_head_size;
-	__u32                       debug_mode;       // turn off print if realease
+	__u8                       debug_mode;       // turn off print if realease
+	__u8                        power_mode;      	 /*0:axp , 1: dummy pmu  */
+	__u8                        reserve[2];
 	unsigned int                dram_para[32];          // DRAM patameters for initialising dram. Original values is arbitrary,
 	__s32						uart_port;              // UART控制器编号
 	normal_gpio_cfg             uart_ctrl[2];           // UART控制器(调试打印口)数据信息

@@ -28,7 +28,7 @@
 #ifndef SHA2_TYPES
 #define SHA2_TYPES
 typedef unsigned char uint8;
-typedef unsigned int  uint32;
+//typedef unsigned int  uint32;
 #endif
 
 

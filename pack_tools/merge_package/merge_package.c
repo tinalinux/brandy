@@ -311,7 +311,6 @@ int load_file_from_partition_config(void* out_buffer, void *partition_cfg)
 	int  offset = 0; 
 	unsigned char* partfile_buffer = NULL;
 	int file_size =0;
-
 	script_parser_init(partition_cfg);
 	while(1)
 	{
@@ -361,6 +360,11 @@ int load_file_from_partition_config(void* out_buffer, void *partition_cfg)
 				}
 			}
 			offset += part_size;
+			if (offset > MAX_IMAGE_SIZE)
+			{
+				printf("error:offset(%d) is too large!\n",offset);
+				return -1;
+			}
 		}
 		else
 		{

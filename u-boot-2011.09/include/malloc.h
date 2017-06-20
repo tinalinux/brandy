@@ -1,4 +1,15 @@
 /*
+ * include/malloc.h
+ *
+ * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ */
+/*
   A version of malloc/free/realloc written by Doug Lea and released to the
   public domain.  Send questions/comments/complaints/performance data
   to dl@cs.oswego.edu
@@ -941,7 +952,8 @@ void mem_malloc_init(ulong start, ulong size);
 void  mem_noncache_malloc_init(uint noncache_start, uint noncache_size);
 void *malloc_noncache(uint num_bytes);
 void  free_noncache(void *p);
-
+void *malloc_align(size_t size,size_t align);
+void free_align(void *ptr);
 
 #ifdef __cplusplus
 };  /* end of extern "C" */

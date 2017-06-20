@@ -4,7 +4,7 @@ objects = check.o script.o update_fes1.o
 
 
 edit:$(objects)
-	gcc -o update_fes1 $(objects)
+	gcc -o update_fes1 $(objects) -static
 	rm -rf $(objects)
 
 

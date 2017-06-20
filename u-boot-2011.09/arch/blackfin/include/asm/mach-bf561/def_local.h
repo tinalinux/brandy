@@ -1,3 +1,14 @@
+/*
+ * arch/blackfin/include/asm/mach-bf561/def_local.h
+ *
+ * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ */
 #define SWRST SICA_SWRST
 #define SYSCR SICA_SYSCR
 #define bfin_write_SWRST(val) bfin_write_SICA_SWRST(val)

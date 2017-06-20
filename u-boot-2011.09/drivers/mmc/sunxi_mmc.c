@@ -705,7 +705,9 @@ static void get_fex_para(int sdc_no)
 static void mmc_host_ahb_gate_rst_onoff(struct sunxi_mmc_host* mmchost, int on)
 {
 	u32 rval = 0;
+#ifndef CONFIG_ARCH_SUN9IW1P1
 	u32 sdc_no = mmchost->mmc_no;
+#endif
 
 #if defined (CONFIG_ARCH_SUN8IW1P1) || \
 	defined (CONFIG_ARCH_SUN8IW3P1) || \
@@ -1876,7 +1878,7 @@ int sunxi_mmc_init(int sdc_no)
 	mmc->init = mmc_core_init;
 	mmc->control_num = sdc_no;
 	mmc->update_phase = mmc_update_phase;
-#if defined(CONFIG_ARCH_SUN8IW5P1) || defined(CONFIG_ARCH_SUN8IW6P1)||defined(CONFIG_ARCH_SUN8IW8P1) ||(defined CONFIG_ARCH_SUN8IW7P1)
+#if defined(CONFIG_ARCH_SUN8IW5P1) || defined(CONFIG_ARCH_SUN8IW6P1)||defined(CONFIG_ARCH_SUN8IW8P1) ||(defined CONFIG_ARCH_SUN8IW7P1) || (defined CONFIG_ARCH_SUN8IW9P1)
 	mmc->set_phase = mmc_2xmode_set_phase;
 #endif
 

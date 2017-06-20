@@ -215,3 +215,72 @@ int dragon_create_rotpk(char *lpCfg, char *keypath)
 	return 0;
 }
 
+
+/*Generate rotpk from pkcs key-pair*/
+
+int dragon_create_rotpk_from_keypair(const char *keypair_file, const char *rotpk_file)
+{
+	int  ret;
+	char hash_value[32];
+	char rotpk[RSA_BIT_WITDH/8 * 2 + 16];
+	char key_n[560], key_e[560], key_d[560], *p_key_n_tmp;
+	unsigned int key_n_len, key_e_len;
+	char current_path[MAX_PATH];
+
+	//获取key名称
+	memset(current_path, 0, MAX_PATH);
+	strcpy(current_path, keypair_file);
+
+
+	//获取对应的key的公钥
+	memset(key_n, 0, 560);
+	memset(key_e, 0, 560);
+	memset(key_d, 0, 560);
+	ret = getallkey(current_path, key_n, key_e, key_d);
+	if(ret < 0)
+	{
+		printf("dragon_create_rotpk err in getpublickey bin\n");
+
+		return -1;
+	}
+	p_key_n_tmp = key_n;
+	while(*p_key_n_tmp == '0')
+		p_key_n_tmp ++;
+
+	key_n_len = strlen((const char *)p_key_n_tmp);
+	key_e_len = strlen((const char *)key_e);
+	//转换字符类型的key为数字类型，分别是n值和e值
+	memset(rotpk, 0x91, sizeof(rotpk));
+	if(__sunxi_bytes_merge((u8 *)rotpk, RSA_BIT_WITDH/8, (u8 *)p_key_n_tmp, key_n_len))
+	{
+		printf("dragon_create_rotpk err in sunxi_bytes_merge for keyn value\n");
+
+		return -1;
+	}
+	if(__sunxi_bytes_merge((u8 *)rotpk+RSA_BIT_WITDH/8, RSA_BIT_WITDH/8, (u8 *)key_e, key_e_len))
+	{
+		printf("dragon_create_rotpk err in sunxi_bytes_merge for keye value\n");
+
+		return -1;
+	}
+
+	sunxi_dump(rotpk, RSA_BIT_WITDH/8*2);
+
+	memset(hash_value, 0, 32);
+	sha256((const u8 *)rotpk, RSA_BIT_WITDH/8*2, (u8 *)hash_value);
+
+	FILE *out_file;
+
+	out_file = fopen(rotpk_file, "wb");
+	if(out_file == NULL)
+	{
+		printf("dragon_create_rotpk err in create rotpk file\n");
+
+		return -1;
+	}
+	fwrite(hash_value, 256/8, 1, out_file);
+	fclose(out_file);
+
+	return 0;
+}
+

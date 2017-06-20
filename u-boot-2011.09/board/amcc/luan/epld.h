@@ -1,3 +1,14 @@
+/*
+ * board/amcc/luan/epld.h
+ *
+ * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ */
 #define EPLD0_FSEL_FB2		0x80
 #define EPLD0_BOOT_SMALL_FLASH	0x40	/* 0 boot from large flash, 1 from small flash */
 #define EPLD0_RAW_CARD_BIT0	0x20	/* raw card EC level */

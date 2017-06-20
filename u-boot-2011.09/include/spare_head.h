@@ -54,6 +54,14 @@
 #define SUNXI_UPDATE_NEXT_ACTION_BOOT			(5)
 #define SUNXI_UPDATA_NEXT_ACTION_SPRITE_TEST    (6)
 
+#define SUNXI_DEBUG_MODE_FLAG           (0x59)
+#define SUNXI_EFEX_CMD_FLAG             (0x5A)
+#define SUNXI_BOOT_RESIGNATURE_FLAG     (0x5B)
+#define SUNXI_BOOT_RECOVERY_FLAG        (0x5C)
+#define SUNXI_SYS_RECOVERY_FLAG         (0x5D)
+#define SUNXI_USB_RECOVERY_FLAG         (0x5E)
+#define SUNXI_FASTBOOT_FLAG             (0x5F)
+
 #define SUNXI_VBUS_UNKNOWN                      (0)
 #define SUNXI_VBUS_EXIST                        (1)
 #define SUNXI_VBUS_NOT_EXIST                    (2)

@@ -43,10 +43,10 @@
 #define  NAND0_GPIO_MAX       24
 
 #define  CARD0_GPIO_START     24
-#define  CARD0_GPIO_MAX       8
+#define  CARD0_GPIO_MAX       16
 
 #define  CARD2_GPIO_START     32
-#define  CARD2_GPIO_MAX       8
+#define  CARD2_GPIO_MAX       16
 
 #define  SPI0_GPIO_START      40
 #define  SPI0_GPIO_MAX        10
@@ -69,10 +69,13 @@ typedef struct sbrom_toc0_config
 	unsigned int        drm_size_mbytes;    //
 	unsigned int        boot_cpu;
 	special_gpio_cfg	a15_power_gpio;		//the gpio config is to a15 extern power enable gpio
-        unsigned int            next_exe_pa;
-        unsigned int            secure_without_OS;      //1:secure boot without semelis 0: secure boot need semelis 
-        unsigned int            debug_mode;             //1:turn on printf ; 0:turn off printf
-	unsigned int      	res[3];   			// 总共1024字节
+	unsigned int            next_exe_pa;
+	unsigned int            secure_without_OS;      //1:secure boot without semelis 0: secure boot need semelis
+ 	unsigned char       debug_mode;         //1:turn on printf; 0 :turn off printf
+	unsigned char       power_mode;          /* 0:axp , 1: dummy pmu  */
+	unsigned char       reserver[2];
+	unsigned int		card_work_mode;
+	unsigned int      	res[2];   			// 总共1024字节
 }
 sbrom_toc0_config_t;
 
@@ -117,7 +120,9 @@ typedef struct sbrom_toc1_head_info
 
 	u32  items_nr;	//total entry number
 	u32  valid_len;
-	u32  reserved[5];	//reserved for future
+	u32  main_version;
+	u32  sub_version;
+	u32  reserved[3];	//reserved for future
 	u32  end;
 }sbrom_toc1_head_info_t;
 

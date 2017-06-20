@@ -1,3 +1,14 @@
+/*
+ * drivers/mmc/mmc_def.h
+ *
+ * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ */
 #ifndef __MMC_DEF__
 #define __MMC_DEF__
 
@@ -14,7 +25,7 @@
 #endif
 
 
-#define DRIVER_VER  "2015-12-03 21:17:15"
+#define DRIVER_VER  "2016-03-24 19:30:15"
 
 //#define TUNING_LEN		(1)//The address which store the tuninng pattern
 //#define TUNING_ADD		(38192-TUNING_LEN)//The address which store the tuninng pattern

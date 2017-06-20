@@ -40,5 +40,6 @@ __s32 gen_check_sum( void *boot_buf );
 __s32 gen_check_sum_toc0( void *boot_buf );
 uint gen_general_checksum(void *buff, uint length);
 uint sunxi_sprite_generate_checksum(void *buffer, uint length, uint src_sum);
+int getfile_size(FILE *pFile);
 
 #endif

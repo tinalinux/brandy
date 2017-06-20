@@ -1,4 +1,6 @@
 /*
+ * arch/arm/cpu/armv7/sun8iw6/mmc/mmc_bsp.h
+ *
  * Copyright (c) 2016 Allwinnertech Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify

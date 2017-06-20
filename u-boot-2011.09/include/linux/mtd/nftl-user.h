@@ -1,4 +1,15 @@
 /*
+ * include/linux/mtd/nftl-user.h
+ *
+ * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ */
+/*
  * $Id: nftl-user.h,v 1.2 2005/11/07 11:14:56 gleixner Exp $
  *
  * Parts of NFTL headers shared with userspace

@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ * Allwinner SoCs display driver.
  *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * Copyright (C) 2016 Allwinner.
  *
+ * This file is licensed under the terms of the GNU General Public
+ * License version 2.  This program is licensed "as is" without any
+ * warranty of any kind, whether express or implied.
  */
+
 #include "de/bsp_display.h"
 #include "disp_sys_intf.h"
 #include "asm/io.h"
@@ -269,7 +270,7 @@ int disp_sys_gpio_request(disp_gpio_set_t *gpio_list, u32 group_count_max)
 		return 0xffff;
 	}
 
-	return gpio_request(&gpio_info, group_count_max);
+	return gpio_request_early(&gpio_info, group_count_max, 1);
 }
 
 int disp_sys_gpio_release(int p_handler, s32 if_release_to_default_status)

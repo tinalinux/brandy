@@ -184,6 +184,16 @@ int create_cert_for_toc1(char *lpCfg, toc_descriptor_t *toc1, char *keypath, cha
 			{
 				toc1[i].type = ONLYKEY_TYPE;
 			}
+			else if( (!strcmp(type_name, "onlylogo")) || (!strcmp(type_name, "onlydata")) )
+			{
+				toc1[i].type = LOGO_TYPE;
+				//如果是logo类型，不处理证书相关
+				GetFullPath(toc1[i].bin, bin_name);
+				printf("bin_name=%s\n", bin_name);
+				printf("bin full name=%s\n", toc1[i].bin);
+
+				continue;
+			}
 			else
 			{
 				toc1[i].type = NORMAL_TYPE;

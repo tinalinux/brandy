@@ -7,7 +7,7 @@
 #include <ctype.h>
 #include <unistd.h>
 
-__asm__(".symver memcpy ,memcpy@GLIBC_2.2.5");
+//__asm__(".symver memcpy ,memcpy@GLIBC_2.2.5");
 
 int parser_script(void *pbuf, int script_len, FILE *hfile);
 //------------------------------------------------------------------------------------------------------------
@@ -734,6 +734,19 @@ static  int  _get_str2int(char *saddr, int value[] )
 		return -1;
 	}
 }
+u32 randto1k(u32 num)
+{
+	if(num % 1024)
+	{
+		printf("update_fdt: num %d randto1k\n", num);
+		return ((num+1023)/1024 * 1024);
+	}
+	else
+	{
+		return num;
+	}
+}
+
 //算法：一行一行的查找
 //      查找到冒号，直接认为是注释行，然后找到回车换行符号，找到下一行去    (语法规则)
 //      查找到'['(左中括号)，认为是一个主键(记为A主键)，找出中括号中间的字符串，以及右中括号
@@ -756,6 +769,8 @@ int parser_script(void *pbuf, int script_len, FILE *hfile)
 	int   value[8];
 	unsigned int i, main_key_index = 0;
 	script_head_t   script_head;
+	unsigned int original_len = 0;;
+	char *align_buf = NULL;
 
 	src = (char *)pbuf;
 	//申请字段空间
@@ -924,15 +939,27 @@ int parser_script(void *pbuf, int script_len, FILE *hfile)
 		}
 	}
 	script_head.item_num = main_key_index;
-	script_head.length   = sizeof(script_head_t) +  sizeof(script_item_t) * main_key_index +
+	original_len   = sizeof(script_head_t) +  sizeof(script_item_t) * main_key_index +
 	                       sub_value_index * 10 * sizeof(int) + dest_data_index * sizeof(int);
+	script_head.length =  randto1k(original_len);
+
 	script_head.version[0] = 1;
 	script_head.version[1] = 2;
 	fwrite(&script_head, 1, sizeof(script_head_t), hfile);
 	fwrite(item_table, 1, sizeof(script_item_t) * main_key_index, hfile);      //保存所有的主键项目
 	fwrite(dest, 1, sub_value_index * 10 * sizeof(int), hfile);                 //保存子键名称项目
 	fwrite(dest_data, 1, dest_data_index * sizeof(int), hfile);                //保存所有的子键数值项目
-
+	if (script_head.length - original_len)
+	{
+		align_buf =(char *)malloc(script_head.length - original_len);
+		if (align_buf == NULL)
+		{
+			printf("malloc align_buf fail\n");
+			goto _err;
+		}
+		memset(align_buf,0,script_head.length - original_len);
+		fwrite(align_buf, 1, script_head.length - original_len, hfile);
+	}
 _err:
 	if(dest)
 	{
@@ -941,6 +968,10 @@ _err:
 	if(dest_data)
 	{
 		free(dest_data);
+	}
+	if(align_buf)
+	{
+		free(align_buf);
 	}
 
 	ret = ((ret >= 0) ? 0: -1);

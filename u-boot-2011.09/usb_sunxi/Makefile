@@ -29,6 +29,8 @@ LIB	:= $(obj)libsunxi_usb.o
 COBJS-y += usb_base_common.o
 COBJS-$(CONFIG_ARCH_SUN8IW5P1)   += usb_dma_control.o
 COBJS-$(CONFIG_ARCH_SUN8IW5P1)   += usb_base_67.o
+COBJS-$(CONFIG_ARCH_SUN8IW8P1)   += usb_dma_control.o
+COBJS-$(CONFIG_ARCH_SUN8IW8P1)   += usb_base_81.o
 COBJS-y += usb_burn.o
 ifndef CONFIG_SUNXI_SPINOR_PLATFORM
 
@@ -50,8 +52,6 @@ COBJS-$(CONFIG_SUN7I) 			 += usb_base_51.o
 COBJS-$(CONFIG_SUN5I)			 += usb_base_13.o
 COBJS-$(CONFIG_ARCH_SUN8IW7P1)   += usb_base_80.o
 COBJS-$(CONFIG_ARCH_SUN8IW7P1)   += usb_dma_control.o
-COBJS-$(CONFIG_ARCH_SUN8IW8P1)   += usb_base_81.o
-COBJS-$(CONFIG_ARCH_SUN8IW8P1)   += usb_dma_control.o
 COBJS-$(CONFIG_ARCH_SUN8IW9P1)   += usb_base_77.o
 COBJS-$(CONFIG_ARCH_SUN8IW9P1)   += usb_dma_control.o
 

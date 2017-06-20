@@ -45,9 +45,11 @@ typedef int					  s32;
 typedef int					  __s32;
 
 typedef unsigned int		  uint;
+typedef unsigned int		  uint32;
 typedef unsigned int		  u32;
 typedef unsigned int		  __u32;
 
+typedef unsigned long long  uint64;
 
 #endif     //  ifndef __type_def_h
 

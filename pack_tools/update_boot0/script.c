@@ -21,7 +21,7 @@
 #include "script.h"
 #include "string.h"
 
-__asm__(".symver memcpy ,memcpy@GLIBC_2.2.5");
+//__asm__(".symver memcpy ,memcpy@GLIBC_2.2.5");
 static  char  *script_mod_buf = NULL;           //指向第一个主键
 static  int    script_main_key_count = 0;       //保存主键的个数
 

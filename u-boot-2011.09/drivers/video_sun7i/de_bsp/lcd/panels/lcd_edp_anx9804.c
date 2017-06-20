@@ -1,4 +1,6 @@
 /*
+ * drivers/video_sun7i/de_bsp/lcd/panels/lcd_edp_anx9804.c
+ *
  * Copyright (c) 2016 Allwinnertech Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify

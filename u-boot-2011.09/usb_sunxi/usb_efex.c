@@ -1404,7 +1404,7 @@ static void dram_data_recv_finish(uint data_type)
 	else if(data_type == SUNXI_EFEX_ERASE_TAG)
 	{
         uint erase_flag;
-
+        int sys_config_erase_flag;
 		printf("SUNXI_EFEX_ERASE_TAG\n");
         erase_flag = *(uint *)trans_data.base_recv_buffer;
 		if(erase_flag)
@@ -1412,7 +1412,9 @@ static void dram_data_recv_finish(uint data_type)
 		    erase_flag = 1;
 		}
 		printf("erase_flag = 0x%x\n", erase_flag);
-		script_parser_patch("platform", "eraseflag", &erase_flag , 1);
+        script_parser_fetch("platform", "eraseflag", &sys_config_erase_flag , 1);
+        if(sys_config_erase_flag == 0 || sys_config_erase_flag == 1)
+		    script_parser_patch("platform", "eraseflag", &erase_flag , 1);
 	}
 	else if(data_type == SUNXI_EFEX_PMU_SET)
 	{

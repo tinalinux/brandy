@@ -26,4 +26,6 @@
 int dragoncreatekey(char *lpCfg, char *key_dir);
 int dragon_create_rotpk(char *lpCfg, char *keypath);
 
+int dragon_create_rotpk_from_keypair(const char *keypair_file, const char *rotpk_file);
+
 #endif  //__CREATE_KEY__H__

@@ -1,4 +1,6 @@
 /*
+ * arch/arm/cpu/armv7/sun9iw1/spl/serial_spl.c
+ *
  * Copyright (c) 2016 Allwinnertech Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify

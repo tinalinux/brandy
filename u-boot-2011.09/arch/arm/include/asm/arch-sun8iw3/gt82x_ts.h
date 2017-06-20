@@ -1,4 +1,6 @@
 /*
+ * arch/arm/include/asm/arch-sun8iw3/gt82x_ts.h
+ *
  * Copyright (c) 2016 Allwinnertech Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify

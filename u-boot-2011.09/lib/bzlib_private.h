@@ -1,4 +1,15 @@
 /*
+ * lib/bzlib_private.h
+ *
+ * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ */
+/*
  * This file is a modified version of bzlib_private.h from the bzip2-1.0.2
  * distribution which can be found at http://sources.redhat.com/bzip2/
  */

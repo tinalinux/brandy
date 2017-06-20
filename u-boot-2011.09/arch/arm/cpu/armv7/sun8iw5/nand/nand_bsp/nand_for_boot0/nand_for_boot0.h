@@ -1,4 +1,6 @@
 /*
+ * arch/arm/cpu/armv7/sun8iw5/nand/nand_bsp/nand_for_boot0/nand_for_boot0.h
+ *
  * Copyright (c) 2016 Allwinnertech Co., Ltd.
  *
  * This program is free software; you can redistribute it and/or modify

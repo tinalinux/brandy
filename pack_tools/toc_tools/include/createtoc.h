@@ -24,8 +24,12 @@
 
 #include "toc_config.h"
 
-int createtoc1(toc_descriptor_t *toc1, char *toc1_name);
+int splittoc0(char *toc0);
+int splittoc1(char *toc1 );
+int update_toc0_cert(toc_descriptor_t* toc0, char *toc0_name);
+
 int createtoc0(toc_descriptor_t *toc1, char *toc1_name);
+int createtoc1(toc_descriptor_t *toc1, char *toc1_name, int main_v, int sub_v);
 int create_package(toc_descriptor_t *package, char *package_name);
 
 #endif  //__CREATE_TOC__H__

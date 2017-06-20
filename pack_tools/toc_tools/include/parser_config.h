@@ -37,4 +37,6 @@ int getallkey(char *key_file, char *key_n, char *key_e, char *key_d);
 
 void sunxi_dump(void *addr, unsigned int size);
 
+int sboot_get_version(int *main_version, int *sub_version, char *version_file);
+
 #endif  //__CREATE_CONFIG__H__

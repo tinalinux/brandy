@@ -1,3 +1,14 @@
+/*
+ * board/cogent/flash.h
+ *
+ * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ */
 /**************** DEFINES for Intel 28F008S5 FLASH chip **********************/
 
 /* register addresses, valid only following a I8S5_CMD_RD_ID command */

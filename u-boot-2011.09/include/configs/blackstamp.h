@@ -1,4 +1,15 @@
 /*
+ * include/configs/blackstamp.h
+ *
+ * Copyright (c) 2016 Allwinnertech Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ */
+/*
  * U-boot - Configuration file for BlackStamp board
  * Configuration by Ben Matthews for UR LLE using bf533-stamp.h
  * as a template
